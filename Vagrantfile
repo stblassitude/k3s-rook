@@ -17,19 +17,7 @@ class Cfg
         vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', @cephdisk]
       end
       v.vm.network "private_network", ip: @ip
-      if @primary
-        v.vm.provision "shell", inline: <<-SHELL
-          set -e
-          mkdir -p /etc/rancher/k3s
-          echo "node-ip: 192.168.33.11" >/etc/rancher/k3s/config.yaml
-          curl -sfL https://get.k3s.io | sh -
-          cp /var/lib/rancher/k3s/server/node-token /vagrant/k3token
-        SHELL
-      else
-        v.vm.provision "shell", inline: <<-SHELL
-          curl -sfL https://get.k3s.io | K3S_URL=https://192.168.33.11:6443 K3S_TOKEN=$(cat /vagrant/k3token) sh -
-        SHELL
-      end
+      v.vm.provision "shell", path: "provision.sh", args: [@ip]
     end
   end
 end
