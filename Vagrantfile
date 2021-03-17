@@ -1,10 +1,16 @@
+# Represents the configuration of one VM. This class is necessary to provide
+# per-VM variables in the closure block, due to when Vagrant evaluates the
+# closure. A simple for loop in the main config closure would define three VMs,
+# but the variables in the per-VM closures would be resolved only after the
+# loop had completed. By creating one instance of this class per VM, each block
+# gets it's own set of variables (from the class instance).
 class Cfg
   def initialize(i, config)
     @name = "node-#{i}"
     @cephdisk = ".vagrant/machines/ceph-#{@name}.vdi"
     @primary = i == 1
     @config = config
-    @ip = "192.168.33.#{10 + i}"
+    @ip = "192.168.199.#{10 + i}"
   end
 
   def configure()
@@ -17,7 +23,7 @@ class Cfg
         vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', @cephdisk]
       end
       v.vm.network "private_network", ip: @ip
-      v.vm.provision "shell", path: "provision.sh", args: [@ip]
+      v.vm.provision "shell", path: "bin/provision-k3s", args: [@ip, @primary.to_s]
     end
   end
 end
@@ -32,22 +38,13 @@ Vagrant.configure("2") do |config|
   end
 
   for i in 1..3
+    # Create config object only once. Vagrant will evalate the config block
+    # multiple times, but we don't want to add configuration on every
+    # evaluation.
     if not cfgs[i]
       c = Cfg.new(i, config)
       c.configure()
       cfgs[i] = c
     end
   end
-
-  config.vm.provision "shell", inline: <<-SHELL
-    curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
-  SHELL
-
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   apt-get update
-  #   apt-get install -y apache2
-  # SHELL
 end

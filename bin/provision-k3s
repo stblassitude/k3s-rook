@@ -5,6 +5,7 @@
 #
 
 ip="$1"
+primary="$2"
 
 wait_for_cluster() {
   while :; do
@@ -23,19 +24,19 @@ update_k3s_config() {
 set -e
 #set -vx
 
-if [ "node-1" = "$(hostname)" ]; then
+if [ "true" = "${primary}" ]; then
   # main node
   apt update
   apt install -y lvm2
   update_k3s_config
-  curl -sfL https://get.k3s.io | sh -s - -- --flannel-iface=eth1
+  curl -sfL https://get.k3s.io | sh -s - -- --flannel-iface=eth1 --disable traefik
 
   wait_for_cluster
-  # ip -d l show flannel.1
-  cp /var/lib/rancher/k3s/server/node-token /vagrant/k3token
+  cp /var/lib/rancher/k3s/server/node-token /vagrant/dynamic-config/k3token
   mkdir -p ~/.kube
   kubectl config view --raw >~/.kube/config
   chmod 0600 ~/.kube/config
+  cp ~/.kube/config /vagrant/dynamic-config/
 
   if which helm >/dev/null; then
     : # helm already installed
@@ -50,10 +51,18 @@ if [ "node-1" = "$(hostname)" ]; then
   helm repo add rook-release https://charts.rook.io/release
   kubectl create namespace rook-ceph --dry-run=client -o yaml | kubectl apply -f -
   helm install --namespace rook-ceph rook-ceph rook-release/rook-ceph
+
+  kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
+  kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+  kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml
+  kubectl apply -f /vagrant/k8s/metallb-config.yaml
+
+  helm repo add traefik https://helm.traefik.io/traefik
+  helm install -n kube-system traefik traefik/traefik
 else
   # additional nodes
   apt update
   apt install -y lvm2
   update_k3s_config
-  curl -sfL https://get.k3s.io | K3S_URL=https://192.168.33.11:6443 K3S_TOKEN=$(cat /vagrant/k3token) sh -s - -- --node-ip=192.168.33.11 --flannel-iface=eth1
+  curl -sfL https://get.k3s.io | K3S_URL=https://192.168.199.11:6443 K3S_TOKEN=$(cat /vagrant/dynamic-config/k3token) sh -s - -- --node-ip=192.168.199.11 --flannel-iface=eth1
 fi

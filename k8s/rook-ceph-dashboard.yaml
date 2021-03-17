@@ -1,0 +1,20 @@
+# https://rook.github.io/docs/rook/v1.5/ceph-dashboard.html
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rook-ceph-mgr-dashboard
+  namespace: rook-ceph
+  annotations: {}
+spec:
+  rules:
+  - host: ceph-dashboard.192.168.199.20.xip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rook-ceph-mgr-dashboard
+            port:
+              name: https-dashboard

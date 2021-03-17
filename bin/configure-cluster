@@ -1,0 +1,10 @@
+#!/bin/sh
+
+#
+# After all nodes are up and running, configure a Ceph cluster.
+#
+
+kubectl apply -f /vagrant/k8s/rook-cluster.yaml
+kubectl apply -f /vagrant/k8s/rook-toolbox.yaml
+kubectl apply -f /vagrant/k8s/rook-storageclass.yaml
+kubectl apply -f /vagrant/k8s/rook-ceph-dashboard.yaml
