@@ -5,16 +5,15 @@
 # loop had completed. By creating one instance of this class per VM, each block
 # gets it's own set of variables (from the class instance).
 class Cfg
-  def initialize(i, config)
+  def initialize(i)
     @name = "node-#{i}"
     @cephdisk = ".vagrant/machines/ceph-#{@name}.vdi"
     @primary = i == 1
-    @config = config
     @ip = "192.168.33.#{10 + i}"
   end
 
-  def configure()
-    @config.vm.define @name, primary: @primary do |v|
+  def configure(config)
+    config.vm.define @name, primary: @primary do |v|
       v.vm.hostname = @name
       v.vm.provider :virtualbox do |vb|
         unless File.exist?(@cephdisk)
@@ -42,8 +41,8 @@ Vagrant.configure("2") do |config|
     # multiple times, but we don't want to add configuration on every
     # evaluation.
     if not cfgs[i]
-      c = Cfg.new(i, config)
-      c.configure()
+      c = Cfg.new(i)
+      c.configure(config)
       cfgs[i] = c
     end
   end
