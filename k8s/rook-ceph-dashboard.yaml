@@ -8,7 +8,7 @@ metadata:
   annotations: {}
 spec:
   rules:
-  - host: ceph-dashboard.192.168.199.20.xip.io
+  - host: ceph-dashboard.192.168.33.20.xip.io
     http:
       paths:
       - path: /
@@ -17,4 +17,4 @@ spec:
           service:
             name: rook-ceph-mgr-dashboard
             port:
-              name: https-dashboard
+              name: http-dashboard

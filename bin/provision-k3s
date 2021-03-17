@@ -19,6 +19,15 @@ update_k3s_config() {
   echo -n "" >/etc/rancher/k3s/config.yaml
   echo "node-ip: $ip" >>/etc/rancher/k3s/config.yaml
   echo "flannel-iface: eth1" >>/etc/rancher/k3s/config.yaml
+  echo "disable: [traefik,servicelb]" >>/etc/rancher/k3s/config.yaml
+  echo "kube-apiserver-arg: 'feature-gates=RemoveSelfLink=false'" >>/etc/rancher/k3s/config.yaml
+}
+
+update_k3s_agent_config() {
+  mkdir -p /etc/rancher/k3s
+  echo -n "" >/etc/rancher/k3s/config.yaml
+  echo "node-ip: $ip" >>/etc/rancher/k3s/config.yaml
+  echo "flannel-iface: eth1" >>/etc/rancher/k3s/config.yaml
 }
 
 set -e
@@ -29,7 +38,7 @@ if [ "true" = "${primary}" ]; then
   apt update
   apt install -y lvm2
   update_k3s_config
-  curl -sfL https://get.k3s.io | sh -s - -- --flannel-iface=eth1 --disable traefik
+  curl -sfL https://get.k3s.io | sh -s -
 
   wait_for_cluster
   cp /var/lib/rancher/k3s/server/node-token /vagrant/dynamic-config/k3token
@@ -63,6 +72,9 @@ else
   # additional nodes
   apt update
   apt install -y lvm2
-  update_k3s_config
-  curl -sfL https://get.k3s.io | K3S_URL=https://192.168.199.11:6443 K3S_TOKEN=$(cat /vagrant/dynamic-config/k3token) sh -s - -- --node-ip=192.168.199.11 --flannel-iface=eth1
+  update_k3s_agent_config
+  curl -sfL https://get.k3s.io \
+    | K3S_URL=https://192.168.33.11:6443 \
+      K3S_TOKEN=$(cat /vagrant/dynamic-config/k3token) \
+      sh -s -
 fi

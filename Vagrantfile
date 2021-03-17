@@ -10,7 +10,7 @@ class Cfg
     @cephdisk = ".vagrant/machines/ceph-#{@name}.vdi"
     @primary = i == 1
     @config = config
-    @ip = "192.168.199.#{10 + i}"
+    @ip = "192.168.33.#{10 + i}"
   end
 
   def configure()
@@ -18,7 +18,7 @@ class Cfg
       v.vm.hostname = @name
       v.vm.provider :virtualbox do |vb|
         unless File.exist?(@cephdisk)
-          vb.customize ['createhd', '--filename', @cephdisk, '--size', 500 * 1024]
+          vb.customize ['createhd', '--filename', @cephdisk, '--size', 500]
         end
         vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', @cephdisk]
       end

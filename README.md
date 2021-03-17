@@ -3,8 +3,8 @@
 This simple Vagrantfile stands up a [k3s](https://k3s.io) cluster consisting of three nodes, and installs [Rook](https://rook.io) with a [Ceph](https://ceph.io) cluster.
 
 Additionally, the following components are installed:
-- [MetalLB](https://metallb.universe.tf) to provide access to apps in the cluster through `192.168.199.20`.
-- [Traefik](https://github.com/traefik/traefik-helm-chart/tree/master/traefik) to provide access to apps in the cluster via Ingress definitions. You can use a DNS service like xip.io or nip.io to create hostnames that map to the MetalLB load balancer IP, for example, `ceph-dashboard.192.168.199.20.xip.io`.
+- [MetalLB](https://metallb.universe.tf) to provide access to apps in the cluster through `192.168.33.20`.
+- [Traefik](https://github.com/traefik/traefik-helm-chart/tree/master/traefik) to provide access to apps in the cluster via Ingress definitions. You can use a DNS service like xip.io or nip.io to create hostnames that map to the MetalLB load balancer IP, for example, `ceph-dashboard.192.168.33.20.xip.io`.
 
 ## Usage
 
@@ -26,13 +26,13 @@ root@node-1:~# sh /vagrant/bin/configure-cluster
 ## k3s Configuration
 
 The following changes are made to the default configuration of k3s:
-- `node-ip` is set to the private network (192.168.199.0/24). Communication over the first interface does not work.
+- `node-ip` is set to the private network (192.168.33.0/24). Communication over the first interface does not work.
 - `flannel-iface` is set to `eth1` for the same reason.
 - Traefik is not deployed by setting `disable traefik`; k3s includes the old 1.x version of traefik; instead, we deploy the current version through Helm.
 
 ## Vagrant Configuration
 
-The three VMs are called `node-1` to `node-3`. `node-1` is the primary node (default for `vagrant`), and will be the k3s master. The IPs are hardcoded as 192.168.199.11-13.
+The three VMs are called `node-1` to `node-3`. `node-1` is the primary node (default for `vagrant`), and will be the k3s master. The IPs are hardcoded as 192.168.33.11-13.
 
 Each VM will receive a second disk with 1GB, which will be used as Ceph storage (`sdb`).
 
@@ -50,6 +50,7 @@ The following commands might be useful in checking cluster status.
 
 * **Run `kubectl` on host**: Copy `dynamic-config/kube-config` to `~/.kube/config`, or set `KUBECONFIG` to include this file, then run `kubectl`.
 
+* **Get password for Ceph Dashboard**: To log in to the [Ceph Dashboard](http://ceph-dashboard.192.168.33.20.xip.io/), you need the password from this secret: `kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo`
 
 ## TODO
 
