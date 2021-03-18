@@ -14,3 +14,6 @@ spec:
     useAllNodes: true
     # useAllDevices: true
     deviceFilter: sdb
+  dashboard:
+    enabled: true
+    ssl: false
