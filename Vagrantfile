@@ -17,7 +17,7 @@ class Cfg
       v.vm.hostname = @name
       v.vm.provider :virtualbox do |vb|
         unless File.exist?(@cephdisk)
-          vb.customize ['createhd', '--filename', @cephdisk, '--size', 500]
+          vb.customize ['createhd', '--filename', @cephdisk, '--size', 8*1024] # 8 GB
         end
         vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', @cephdisk]
       end
