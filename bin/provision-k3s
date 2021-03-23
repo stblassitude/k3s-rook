@@ -59,7 +59,7 @@ if [ "true" = "${primary}" ]; then
 
   helm repo add rook-release https://charts.rook.io/release
   kubectl create namespace rook-ceph --dry-run=client -o yaml | kubectl apply -f -
-  helm install --namespace rook-ceph rook-ceph rook-release/rook-ceph
+  helm upgrade --install --namespace rook-ceph rook-ceph rook-release/rook-ceph
 
   kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
   kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
@@ -75,6 +75,16 @@ if [ "true" = "${primary}" ]; then
     --set ingress.enabled=true \
     --set ingress.hosts[0].host=whoami.192.168.33.20.xip.io \
     --set ingress.hosts[0].paths[0]="/"
+
+  helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+  helm upgrade --install --namespace kube-system kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
+    --set protocolHttp=true \
+    --set service.externalPort=9090 \
+    --set settings=enable-insecure-login=true \
+    --set ingress.enabled=true \
+    --set ingress.hosts[0]=kubernetes-dashboard.192.168.33.20.xip.io \
+    --set ingress.paths[0]="/"
+  kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
 else
   # additional nodes
   apt update

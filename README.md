@@ -63,6 +63,7 @@ The [whoami](https://github.com/containous/whoami) mini web server is deployed t
 
 The following applications are exposed through Traefik:
 
+* [Kubernetes Dashboard](http://kubernetes-dashboard.192.168.33.20.xip.io/)
 * [Traefik Dashboard](http://traefik.192.168.33.20.xip.io/dashboard/#/)
 * [Ceph Dashboard](http://ceph-dashboard.192.168.33.20.xip.io/)
 * [whoami test application](http://whoami.192.168.33.20.xip.io/)
